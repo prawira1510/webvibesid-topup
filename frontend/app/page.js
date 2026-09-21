@@ -41,6 +41,7 @@ export default function WebVibesIDDigitalStore() {
   const [activeInvoice, setActiveInvoice] = useState(null);
   const [loadingPayment, setLoadingPayment] = useState(false);
   const [generatedTokenCode, setGeneratedTokenCode] = useState('');
+  const [purchaseHistory, setPurchaseHistory] = useState([]);
 
   // STATE KEAMANAN ADMIN (PIN RAHASIA)
   const [adminPinInput, setAdminPinInput] = useState('');
@@ -59,6 +60,7 @@ export default function WebVibesIDDigitalStore() {
   // LOGIKA TRIPLE CLICK RAHASIA PADA LOGO
   const clickCountRef = useRef(0);
   const clickTimerRef = useRef(null);
+  const [invoiceSequence, setInvoiceSequence] = useState(0);
 
   const handleLogoClick = () => {
     clickCountRef.current += 1;
@@ -417,10 +419,12 @@ export default function WebVibesIDDigitalStore() {
   };
 
   const handleProceedToCheckout = (productInfo, denomInfo, targetInfo, categoryName) => {
+    const nextInvoiceSequence = invoiceSequence + 1;
+    setInvoiceSequence(nextInvoiceSequence);
     setAppliedPromo(null);
     setPromoCode('');
     const invoice = {
-      invoiceNo: 'WV-' + Math.floor(100000 + Math.random() * 900000),
+      invoiceNo: `WV-${String(nextInvoiceSequence).padStart(6, '0')}`,
       productName: productInfo,
       denomName: denomInfo.name,
       price: denomInfo.price,
@@ -463,13 +467,26 @@ export default function WebVibesIDDigitalStore() {
                               Math.floor(1000 + Math.random() * 9000);
           setGeneratedTokenCode(randomToken);
         }
+        savePurchaseToHistory(activeInvoice, selectedPayment);
         setCheckoutStep('success');
       }, 1800);
     }
   };
 
+  const savePurchaseToHistory = (invoice, paymentMethod) => {
+    setPurchaseHistory((currentHistory) => [
+      {
+        ...invoice,
+        paymentMethod,
+        status: 'Berhasil',
+        completedAt: new Date().toLocaleString('id-ID'),
+      },
+      ...currentHistory,
+    ]);
+  };
+
   return (
-    <div className="min-h-screen bg-[#06152D] text-white font-sans selection:bg-[#1769E0] selection:text-white flex flex-col justify-between">
+    <div className="min-h-screen bg-[#06152D] text-white font-sans selection:bg-[#1769E0] selection:text-white flex flex-col justify-between pb-24 lg:pb-0">
       
       <div>
         {/* NAVBAR STICKY DENGAN LOGO WEB VIBES ID */}
@@ -490,12 +507,10 @@ export default function WebVibesIDDigitalStore() {
               <button onClick={() => { setCurrentView('pulsa'); setCheckoutStep('form'); }} className={`hover:text-white transition ${currentView === 'pulsa' ? 'text-[#1769E0] font-bold' : ''}`}>Pulsa & Data</button>
               <button onClick={() => { setCurrentView('ppob'); setCheckoutStep('form'); }} className={`hover:text-white transition ${currentView === 'ppob' ? 'text-[#1769E0] font-bold' : ''}`}>PPOB</button>
               <button onClick={() => { setCurrentView('promo'); setCheckoutStep('form'); }} className={`hover:text-white transition ${currentView === 'promo' ? 'text-[#1769E0] font-bold' : ''}`}>Promo</button>
+              <button onClick={() => { setCurrentView('history'); setCheckoutStep('form'); }} className={`hover:text-white transition ${currentView === 'history' ? 'text-[#1769E0] font-bold' : ''}`}>Riwayat</button>
               <button onClick={() => alert('Fitur Bantuan / FAQ WebVibes ID: Hubungi CS via WhatsApp atau email support@webvibes.id')} className="hover:text-white transition">Bantuan</button>
             </div>
 
-            <div className="flex items-center gap-3">
-              <button onClick={() => { setCurrentView('games'); setCheckoutStep('form'); }} className="px-5 py-2 text-sm font-bold bg-[#1769E0] hover:bg-blue-600 rounded-xl shadow-lg transition">Mulai Transaksi</button>
-            </div>
           </div>
         </nav>
 
@@ -541,7 +556,7 @@ export default function WebVibesIDDigitalStore() {
                     key={m} onClick={() => setSelectedPayment(m)}
                     className={`p-4 rounded-xl border cursor-pointer transition flex items-center justify-between text-sm ${selectedPayment === m ? 'border-[#1769E0] bg-[#1769E0]/20 font-bold text-white' : 'border-[#1D4F91] bg-[#06152D] text-slate-300'}`}
                   >
-                    <span>{m === 'QRIS' ? '📷 QRIS (Scan & Otomatis Selesai)' : `⚡ E-Wallet ${m} (Direct Pay)`}</span>
+                    <span>{m === 'QRIS' ? '📷 QRIS' : `⚡ E-Wallet ${m}`}</span>
                     <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${selectedPayment === m ? 'border-[#1769E0] bg-[#1769E0]' : 'border-slate-500'}`}>
                       {selectedPayment === m && <span className="w-1.5 h-1.5 bg-white rounded-full"></span>}
                     </span>
@@ -550,11 +565,9 @@ export default function WebVibesIDDigitalStore() {
               </div>
 
               {selectedPayment === 'QRIS' && (
-                <div className="bg-white p-6 rounded-2xl text-center space-y-3 animate-in fade-in">
-                  <div className="w-40 h-40 bg-slate-900 mx-auto rounded-xl flex items-center justify-center text-white font-mono text-xs border-4 border-dashed border-[#1769E0] p-2">
-                    [ QRIS DYNAMIC CODE ]
-                  </div>
-                  <p className="text-xs text-slate-700 font-bold">Scan QRIS menggunakan BCA, OVO, DANA, GoPay, atau Mobile Banking.</p>
+                <div className="bg-white p-5 rounded-2xl text-center space-y-3 animate-in fade-in">
+                  <img src="/qris-webvibes.jpeg" alt="Kode QRIS WebVibes ID" className="mx-auto w-full max-w-[320px] rounded-xl shadow-sm" />
+                  <p className="text-xs text-slate-700 font-bold">Scan QRIS dengan aplikasi pembayaran atau mobile banking Anda.</p>
                 </div>
               )}
 
@@ -583,7 +596,8 @@ export default function WebVibesIDDigitalStore() {
         ) : checkoutStep === 'success' && activeInvoice ? (
           /* STATUS TRANSAKSI BERHASIL */
           <div className="max-w-lg mx-auto px-6 py-16 animate-in zoom-in">
-            <div className="bg-[#0A1F3D] border border-emerald-500/50 rounded-3xl p-8 space-y-6 text-center shadow-2xl">
+            <div id="receipt-print" className="bg-[#0A1F3D] border border-emerald-500/50 rounded-3xl p-8 space-y-6 text-center shadow-2xl">
+              <div className="receipt-brand text-xs font-black tracking-[0.24em] text-[#5da1ff]">WEBVIBES.ID</div>
               <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center text-3xl mx-auto border-2 border-emerald-500 animate-bounce shadow-lg">
                 ✓
               </div>
@@ -600,7 +614,7 @@ export default function WebVibesIDDigitalStore() {
                   </div>
                   <button 
                     onClick={() => { navigator.clipboard.writeText(generatedTokenCode); alert('Kode token berhasil disalin!'); }}
-                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow"
+                    className="no-print w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow"
                   >
                     Salin Token
                   </button>
@@ -620,7 +634,7 @@ export default function WebVibesIDDigitalStore() {
                 <div className="flex justify-between border-t border-[#1D4F91] pt-2 font-bold text-sm"><span className="text-slate-400">Total</span><span className="text-emerald-400">Rp {(activeInvoice.price + 1000 - getDiscountAmount()).toLocaleString('id-ID')}</span></div>
               </div>
 
-              <div className="flex gap-3">
+              <div className="no-print receipt-actions flex gap-3">
                 <button onClick={() => { navigator.clipboard.writeText(activeInvoice.invoiceNo); alert('Nomor transaksi berhasil disalin!'); }} className="flex-1 py-3 bg-[#06152D] border border-[#1D4F91] hover:border-[#1769E0] font-bold rounded-xl text-xs transition shadow">
                   Salin No. Transaksi
                 </button>
@@ -628,7 +642,48 @@ export default function WebVibesIDDigitalStore() {
                   Print / Struk PDF
                 </button>
               </div>
+              <button type="button" onClick={() => { setCurrentView('history'); setCheckoutStep('form'); }} className="no-print w-full py-3 text-xs font-bold text-[#5da1ff] hover:text-white transition">
+                Lihat Riwayat Pembelian
+              </button>
             </div>
+          </div>
+        ) : currentView === 'history' ? (
+          <div className="max-w-4xl mx-auto px-6 py-12 space-y-8 animate-in fade-in">
+            <div className="flex items-center justify-between gap-4 border-b border-[#1D4F91] pb-5">
+              <div>
+                <h1 className="text-3xl font-extrabold">Riwayat Pembelian</h1>
+                <p className="text-sm text-slate-400 mt-1">Laporan transaksi yang selesai pada perangkat ini.</p>
+              </div>
+              <button type="button" onClick={() => { setCurrentView('home'); setCheckoutStep('form'); }} className="text-sm font-bold text-[#5da1ff] hover:text-white transition">Beranda</button>
+            </div>
+
+            {purchaseHistory.length === 0 ? (
+              <div className="rounded-3xl border border-dashed border-[#1D4F91] bg-[#0A1F3D] px-6 py-14 text-center">
+                <div aria-hidden="true" className="text-4xl mb-3">🧾</div>
+                <h2 className="font-bold text-white">Belum ada riwayat pembelian</h2>
+                <p className="mt-2 text-sm text-slate-400">Transaksi yang berhasil akan tercatat di halaman ini.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {purchaseHistory.map((purchase) => (
+                  <article key={purchase.invoiceNo} className="rounded-2xl border border-[#1D4F91] bg-[#0A1F3D] p-5 shadow-lg">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <h2 className="font-bold text-white">{purchase.productName}</h2>
+                        <p className="mt-1 text-xs text-slate-400">{purchase.invoiceNo} · {purchase.completedAt}</p>
+                      </div>
+                      <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-bold text-emerald-400">{purchase.status}</span>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 gap-3 border-t border-[#1D4F91] pt-4 text-xs sm:grid-cols-4">
+                      <div><p className="text-slate-500">Produk</p><p className="mt-1 font-semibold text-white">{purchase.denomName}</p></div>
+                      <div><p className="text-slate-500">Pembayaran</p><p className="mt-1 font-semibold text-white">{purchase.paymentMethod}</p></div>
+                      <div><p className="text-slate-500">Tujuan</p><p className="mt-1 font-semibold text-white break-all">{purchase.target}</p></div>
+                      <div><p className="text-slate-500">Total</p><p className="mt-1 font-bold text-[#5da1ff]">Rp {(purchase.price + purchase.adminFee).toLocaleString('id-ID')}</p></div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
           </div>
         ) : currentView === 'promo' ? (
           /* HALAMAN PROMO PUBLIK */
@@ -1419,6 +1474,66 @@ export default function WebVibesIDDigitalStore() {
           <p>© 2026 WebVibes ID. All Rights Reserved.</p>
         </div>
       </footer>
+
+      {/* NAVIGASI BAWAH KHUSUS MOBILE */}
+      <nav aria-label="Navigasi mobile" className="fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] left-1/2 z-50 w-[calc(100%-1.5rem)] max-w-[400px] -translate-x-1/2 rounded-[10px] border border-[#1D4F91] bg-[#07152D]/95 px-2 py-2 shadow-[0_15px_25px_rgba(0,0,0,0.35)] backdrop-blur-md lg:hidden">
+        <div className="mx-auto grid min-h-[54px] grid-cols-6 gap-1">
+          <button
+            type="button"
+            onClick={() => { setCurrentView('home'); setSelectedProduct(null); setCheckoutStep('form'); }}
+            aria-current={currentView === 'home' ? 'page' : undefined}
+            className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold transition ${currentView === 'home' ? 'bg-[#1769E0]/20 text-[#5da1ff]' : 'text-slate-400 hover:bg-[#1769E0]/10 hover:text-white'}`}
+          >
+            <span aria-hidden="true" className="text-lg leading-none">⌂</span>
+            Beranda
+          </button>
+          <button
+            type="button"
+            onClick={() => { setCurrentView('games'); setSelectedProduct(null); setCheckoutStep('form'); }}
+            aria-current={currentView === 'games' || currentView === 'detail' ? 'page' : undefined}
+            className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold transition ${currentView === 'games' || currentView === 'detail' ? 'bg-[#1769E0]/20 text-[#5da1ff]' : 'text-slate-400 hover:bg-[#1769E0]/10 hover:text-white'}`}
+          >
+            <span aria-hidden="true" className="text-lg leading-none">🎮</span>
+            Game
+          </button>
+          <button
+            type="button"
+            onClick={() => { setCurrentView('voucher'); setSelectedProduct(null); setCheckoutStep('form'); }}
+            aria-current={currentView === 'voucher' ? 'page' : undefined}
+            className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold transition ${currentView === 'voucher' ? 'bg-[#1769E0]/20 text-[#5da1ff]' : 'text-slate-400 hover:bg-[#1769E0]/10 hover:text-white'}`}
+          >
+            <span aria-hidden="true" className="text-lg leading-none">🎟️</span>
+            Voucher
+          </button>
+          <button
+            type="button"
+            onClick={() => { setCurrentView('pulsa'); setSelectedProduct(null); setCheckoutStep('form'); }}
+            aria-current={currentView === 'pulsa' ? 'page' : undefined}
+            className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold transition ${currentView === 'pulsa' ? 'bg-[#1769E0]/20 text-[#5da1ff]' : 'text-slate-400 hover:bg-[#1769E0]/10 hover:text-white'}`}
+          >
+            <span aria-hidden="true" className="text-lg leading-none">📱</span>
+            Pulsa
+          </button>
+          <button
+            type="button"
+            onClick={() => { setCurrentView('ppob'); setSelectedProduct(null); setCheckoutStep('form'); }}
+            aria-current={currentView === 'ppob' ? 'page' : undefined}
+            className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold transition ${currentView === 'ppob' ? 'bg-[#1769E0]/20 text-[#5da1ff]' : 'text-slate-400 hover:bg-[#1769E0]/10 hover:text-white'}`}
+          >
+            <span aria-hidden="true" className="text-lg leading-none">⚡</span>
+            PPOB
+          </button>
+          <button
+            type="button"
+            onClick={() => { setCurrentView('history'); setSelectedProduct(null); setCheckoutStep('form'); }}
+            aria-current={currentView === 'history' ? 'page' : undefined}
+            className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold transition ${currentView === 'history' ? 'bg-[#1769E0]/20 text-[#5da1ff]' : 'text-slate-400 hover:bg-[#1769E0]/10 hover:text-white'}`}
+          >
+            <span aria-hidden="true" className="text-lg leading-none">🧾</span>
+            Riwayat
+          </button>
+        </div>
+      </nav>
 
     </div>
   );
