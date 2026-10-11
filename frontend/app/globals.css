@@ -196,17 +196,24 @@ body {
 }
 
 
-@keyframes scroll-banner-slide {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+@keyframes fade-banner-slide {
+  0%, 30% { opacity: 1; }
+  34%, 96% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
-.animate-banner-scroll {
-  display: flex;
-  width: max-content;
-  animation: scroll-banner-slide 18s linear infinite;
+.animate-banner-slide {
+  opacity: 0;
+  animation: fade-banner-slide 18s ease-in-out infinite;
 }
 
-.animate-banner-scroll:hover {
-  animation-play-state: paused;
+@media (prefers-reduced-motion: reduce) {
+  .animate-banner-slide {
+    animation: none;
+    opacity: 0;
+  }
+
+  .animate-banner-slide:first-child {
+    opacity: 1;
+  }
 }

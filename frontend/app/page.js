@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 // ==========================================
 // KOMPONEN IKON VEKTOR SVG (CLEAN & MODERN)
@@ -165,6 +165,14 @@ function IconExternalLink({ className = 'w-4 h-4' }) {
   );
 }
 
+function IconArrowLeft({ className = 'w-5 h-5' }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5m7 7l-7-7 7-7" />
+    </svg>
+  );
+}
+
 
 // ==========================================
 // KOMPONEN UTAMA
@@ -186,6 +194,20 @@ export default function WebVibesIDDigitalStore() {
     toastTimerRef.current = setTimeout(() => {
       setToast(prev => ({ ...prev, show: false }));
     }, 3800);
+  };
+
+  const navigateToCategory = (view) => {
+    setCurrentView(view);
+    setCheckoutStep('form');
+    setActiveInvoice(null);
+    setSelectedProduct(null);
+    setSelectedVoucher(null);
+    setSelectedVoucherDenom(null);
+    setSelectedDenom(null);
+    setVerifiedAccount(null);
+    setPlnCustomerData(null);
+    setIndihomeData(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // State Pencarian & Filter Game
@@ -222,8 +244,33 @@ export default function WebVibesIDDigitalStore() {
   const [checkoutStep, setCheckoutStep] = useState('form');
   const [activeInvoice, setActiveInvoice] = useState(null);
   const [loadingPayment, setLoadingPayment] = useState(false);
-  const [generatedTokenCode, setGeneratedTokenCode] = useState('');
   const [purchaseHistory, setPurchaseHistory] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoadFailed, setReviewsLoadFailed] = useState(false);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewDismissedInvoice, setReviewDismissedInvoice] = useState(null);
+  const apiBaseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000').replace(/\/+$/, '');
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${apiBaseUrl}/api/v1/reviews`)
+      .then(async (response) => {
+        const result = await response.json();
+        if (!response.ok || !result.success || !Array.isArray(result.data)) {
+          throw new Error(result.message || 'Tidak dapat memuat ulasan.');
+        }
+        if (!cancelled) setReviews(result.data);
+      })
+      .catch((error) => {
+        console.error('Gagal memuat ulasan pelanggan:', error);
+        if (!cancelled) setReviewsLoadFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [apiBaseUrl]);
 
   // State Modal Pembaca Berita Penuh
   const [selectedArticle, setSelectedArticle] = useState(null);
@@ -355,6 +402,7 @@ export default function WebVibesIDDigitalStore() {
   ];
 
   // DAFTAR SIARAN LANGSUNG PARA GAMERS & STREAMER POPULER
+  // Isi url dan schedule (WIB) dengan kanal serta jadwal streamer yang sudah diverifikasi.
   const gamerStreamsList = [
     {
       id: 'stream-windah',
@@ -363,11 +411,12 @@ export default function WebVibesIDDigitalStore() {
       game: 'Genshin Impact & Stumble Guys',
       title: 'Live Charity & Mabar Bar-Bar Bareng Bocil Kematian!',
       viewers: '52.4rb Penonton',
-      status: 'live',
-      tag: 'LIVE SEKARANG',
+      status: 'scheduled',
+      tag: 'JADWAL',
       avatar: '/logo Genshin Impact.jpg',
       badgePlatform: 'YouTube',
-      url: 'https://www.youtube.com',
+      url: '',
+      schedule: '',
       gradient: 'from-red-600/30 via-slate-900/50 to-[#0A1F3D]',
     },
     {
@@ -377,11 +426,12 @@ export default function WebVibesIDDigitalStore() {
       game: 'Mobile Legends: Bang Bang',
       title: 'Push Rank Mythical Immortal Solo S35 + Borong Skin',
       viewers: '41.8rb Penonton',
-      status: 'live',
-      tag: 'LIVE SEKARANG',
+      status: 'scheduled',
+      tag: 'JADWAL',
       avatar: '/logo MLBB.jpg',
       badgePlatform: 'YouTube',
-      url: 'https://www.youtube.com',
+      url: '',
+      schedule: '',
       gradient: 'from-blue-600/30 via-slate-900/50 to-[#0A1F3D]',
     },
     {
@@ -391,11 +441,12 @@ export default function WebVibesIDDigitalStore() {
       game: 'Mobile Legends: Bang Bang',
       title: 'Mage Rahasia Patch Baru: Pembuktian Build One Shot Kill',
       viewers: '28.1rb Penonton',
-      status: 'live',
-      tag: 'LIVE SEKARANG',
+      status: 'scheduled',
+      tag: 'JADWAL',
       avatar: '/logo MLBB.jpg',
       badgePlatform: 'YouTube',
-      url: 'https://www.youtube.com',
+      url: '',
+      schedule: '',
       gradient: 'from-amber-600/30 via-slate-900/50 to-[#0A1F3D]',
     },
     {
@@ -405,11 +456,12 @@ export default function WebVibesIDDigitalStore() {
       game: 'Valorant & Delta Force PC',
       title: 'Nongkrong Santai Sambil Bantai Lobi Valorant Radian',
       viewers: '33.2rb Penonton',
-      status: 'live',
-      tag: 'LIVE SEKARANG',
+      status: 'scheduled',
+      tag: 'JADWAL',
       avatar: '/logo valorant.jpg',
       badgePlatform: 'TikTok',
-      url: 'https://www.tiktok.com',
+      url: '',
+      schedule: '',
       gradient: 'from-pink-600/30 via-purple-900/40 to-[#0A1F3D]',
     },
     {
@@ -419,11 +471,12 @@ export default function WebVibesIDDigitalStore() {
       game: 'Mobile Legends: Bang Bang',
       title: 'Mabar Ranked Gusion & Review Patch Bareng Pro Player',
       viewers: '24.9rb Penonton',
-      status: 'live',
-      tag: 'LIVE SEKARANG',
+      status: 'scheduled',
+      tag: 'JADWAL',
       avatar: '/logo MLBB.jpg',
       badgePlatform: 'YouTube',
-      url: 'https://www.youtube.com',
+      url: '',
+      schedule: '',
       gradient: 'from-blue-600/30 via-slate-900/50 to-[#0A1F3D]',
     },
     {
@@ -433,11 +486,12 @@ export default function WebVibesIDDigitalStore() {
       game: 'PUBG Mobile',
       title: 'Scrim Turnamen Malam & Bantai Map Erangel Squad',
       viewers: '18.7rb Penonton',
-      status: 'live',
-      tag: 'LIVE SEKARANG',
+      status: 'scheduled',
+      tag: 'JADWAL',
       avatar: '/logo pubgm.jpg',
       badgePlatform: 'YouTube',
-      url: 'https://www.youtube.com',
+      url: '',
+      schedule: '',
       gradient: 'from-orange-600/30 via-slate-900/50 to-[#0A1F3D]',
     },
     {
@@ -447,11 +501,12 @@ export default function WebVibesIDDigitalStore() {
       game: 'Free Fire MAX',
       title: 'By One Shotgun Rusher Fast Hand + Giveaway Diamond',
       viewers: '29.3rb Penonton',
-      status: 'live',
-      tag: 'LIVE SEKARANG',
+      status: 'scheduled',
+      tag: 'JADWAL',
       avatar: '/logo garena FF.jpg',
       badgePlatform: 'TikTok',
-      url: 'https://www.tiktok.com',
+      url: '',
+      schedule: '',
       gradient: 'from-cyan-600/30 via-slate-900/50 to-[#0A1F3D]',
     },
     {
@@ -461,11 +516,12 @@ export default function WebVibesIDDigitalStore() {
       game: 'Roblox & Petualangan',
       title: 'Mabar Roblox Mini Games & Ngakak Bareng Temen-Temen',
       viewers: '35.6rb Penonton',
-      status: 'live',
-      tag: 'LIVE SEKARANG',
+      status: 'scheduled',
+      tag: 'JADWAL',
       avatar: '/logo roblox.jpg',
       badgePlatform: 'YouTube',
-      url: 'https://www.youtube.com',
+      url: '',
+      schedule: '',
       gradient: 'from-emerald-600/30 via-slate-900/50 to-[#0A1F3D]',
     },
   ];
@@ -502,7 +558,7 @@ export default function WebVibesIDDigitalStore() {
     }
 
     const newPromo = {
-      id: Date.now(),
+      id: promoList.length + 1,
       title: newPromoTitle,
       code: newPromoCode.toUpperCase(),
       discountValue: Number(newPromoDisc),
@@ -523,26 +579,29 @@ export default function WebVibesIDDigitalStore() {
   };
 
   const handleCheckPlnId = () => {
-    if (!plnId || plnId.length < 5) {
+    const normalizedPlnId = plnId.replace(/\D/g, '');
+    if (normalizedPlnId.length < 5) {
       showToast('Masukkan Nomor Meter / ID Pelanggan PLN yang valid!', 'error');
       return;
     }
-    setPlnCustomerData({ name: 'Ahmad Fauzi (Tarif R1/900VA)', meterNo: plnId, segment: 'Prabayar' });
-    showToast('ID Pelanggan PLN terverifikasi: Ahmad Fauzi (R1/900VA)', 'success');
+    setPlnCustomerData({ name: 'Pelanggan PLN', meterNo: normalizedPlnId, segment: 'Prabayar' });
+    showToast('ID Pelanggan PLN berhasil dicek.', 'success');
   };
 
   const handleCheckIndihome = () => {
-    if (!indihomeId || indihomeId.length < 6) {
+    const normalizedIndihomeId = indihomeId.replace(/\D/g, '');
+    if (normalizedIndihomeId.length < 6) {
       showToast('Masukkan Nomor Pelanggan IndiHome yang valid!', 'error');
       return;
     }
-    setIndihomeData({ name: 'Budi Santoso', period: 'September 2026', billAmount: 315000, adminFee: 2500 });
-    showToast('Tagihan IndiHome ditemukan: Budi Santoso (Rp317.500)', 'success');
+    setIndihomeData({ name: 'Pelanggan IndiHome', period: 'Tagihan bulan berjalan', billAmount: 315000, adminFee: 2500 });
+    showToast('Rincian tagihan IndiHome berhasil dimuat.', 'success');
   };
 
   const handlePhoneChange = (val) => {
-    setPhoneNumber(val);
-    const cleaned = val.replace(/\D/g, '');
+    const digits = val.replace(/\D/g, '');
+    const cleaned = digits.startsWith('62') ? `0${digits.slice(2)}` : digits;
+    setPhoneNumber(cleaned);
     if (cleaned.length >= 4) {
       const prefix = cleaned.substring(0, 4);
       if (['0811', '0812', '0813', '0821', '0822', '0852', '0853', '0823'].some(p => prefix.startsWith(p.substring(0, 3)))) {
@@ -563,6 +622,25 @@ export default function WebVibesIDDigitalStore() {
     } else {
       setDetectedOperator(null);
     }
+  };
+
+  const handleSelectPhoneProduct = (item, isDataPackage = false) => {
+    if (!/^08\d{8,11}$/.test(phoneNumber)) {
+      setToast({
+        show: true,
+        message: 'Masukkan nomor HP Indonesia yang valid terlebih dahulu!',
+        type: 'error',
+      });
+      return;
+    }
+    const name = isDataPackage
+      ? `Paket Data ${detectedOperator?.name || 'Seluler'} ${item.name}`
+      : `Pulsa ${detectedOperator?.name || 'Seluler'} ${item.name}`;
+    const denomination = {
+      name: isDataPackage ? `${item.name} (${item.active})` : item.name,
+      price: item.price,
+    };
+    handleProceedToCheckout(name, denomination, phoneNumber, 'Pulsa & Paket Data');
   };
 
   const allGamesList = [
@@ -586,6 +664,10 @@ export default function WebVibesIDDigitalStore() {
     { id: 'pb', name: 'Point Blank', publisher: 'Zepetto', image: '/logo point blank.jpg', priceFrom: 'Rp10.000', category: 'FPS', popular: true, requiresServer: false },
   ];
 
+  const visibleGames = allGamesList.filter((game) =>
+    (activeGameTab === 'Semua' || game.category === activeGameTab) &&
+    game.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+  );
   const popularGames = ['ml', 'ff', 'valorant', 'hok'].map(id => allGamesList.find(g => g.id === id)).filter(Boolean);
 
   const gameDenomDatabase = {
@@ -780,10 +862,10 @@ export default function WebVibesIDDigitalStore() {
       setIsVerifying(false);
       if (gameId.length >= 3) {
         setVerifiedAccount({
-          username: 'Prawira Gamer (WebVibes ID)',
+          username: 'ID diterima (simulasi)',
           status: 'Valid'
         });
-        showToast('Akun berhasil diverifikasi: Prawira Gamer', 'success');
+        showToast('Pengecekan simulasi berhasil. ID belum dicocokkan ke server game.', 'success');
       } else {
         setVerifiedAccount({
           username: null,
@@ -864,9 +946,12 @@ export default function WebVibesIDDigitalStore() {
     return appliedPromo.discountValue;
   };
 
-  const handleProceedToCheckout = (productInfo, denomInfo, targetInfo, categoryName) => {
+  const handleProceedToCheckout = (productInfo, denomInfo, targetInfo, categoryName, adminFee = 1000) => {
     const nextInvoiceSequence = invoiceSequence + 1;
     setInvoiceSequence(nextInvoiceSequence);
+    setReviewRating(0);
+    setReviewComment('');
+    setReviewDismissedInvoice(null);
     setAppliedPromo(null);
     setPromoCode('');
     const invoice = {
@@ -875,9 +960,9 @@ export default function WebVibesIDDigitalStore() {
       denomName: denomInfo.name,
       price: denomInfo.price,
       target: targetInfo,
-      username: verifiedAccount ? verifiedAccount.username : '-',
+      username: categoryName === 'Top-Up Game' && verifiedAccount ? verifiedAccount.username : '-',
       category: categoryName,
-      adminFee: 1000,
+      adminFee,
       time: new Date().toLocaleString('id-ID'),
     };
     setActiveInvoice(invoice);
@@ -885,40 +970,40 @@ export default function WebVibesIDDigitalStore() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleProcessPayment = () => {
+  const handleProcessPayment = async () => {
+    if (!activeInvoice || loadingPayment) return;
     setLoadingPayment(true);
-    const netAmount = (activeInvoice.price + 1000 - getDiscountAmount() > 0) ? (activeInvoice.price + 1000 - getDiscountAmount()) : 1000;
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/v1/transaction/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productName: `${activeInvoice.productName} - ${activeInvoice.denomName}`,
+          targetId: activeInvoice.target,
+          paymentMethod: selectedPayment,
+          amount: Math.max(0, activeInvoice.price + activeInvoice.adminFee - getDiscountAmount()),
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success || !result.data?.invoiceId) {
+        throw new Error(result.message || 'Backend tidak dapat mencatat pesanan simulasi.');
+      }
 
-    if (selectedPayment === 'DANA') {
-      setTimeout(() => {
-        setLoadingPayment(false);
-        window.location.href = `https://link.dana.id/pay?amount=${netAmount}&note=TopUp-${activeInvoice.invoiceNo}`;
-      }, 1000);
-    } else if (selectedPayment === 'GoPay') {
-      setTimeout(() => {
-        setLoadingPayment(false);
-        window.location.href = `https://gopay.co.id/transfer?amount=${netAmount}`;
-      }, 1000);
-    } else if (selectedPayment === 'OVO') {
-      setTimeout(() => {
-        setLoadingPayment(false);
-        window.location.href = `https://www.ovo.id/transfer?amount=${netAmount}`;
-      }, 1000);
-    } else {
-      setTimeout(() => {
-        setLoadingPayment(false);
-        if (activeInvoice && activeInvoice.productName.includes('Token PLN')) {
-          const randomToken = Math.floor(1000 + Math.random() * 9000) + ' ' + 
-                              Math.floor(1000 + Math.random() * 9000) + ' ' + 
-                              Math.floor(1000 + Math.random() * 9000) + ' ' + 
-                              Math.floor(1000 + Math.random() * 9000);
-          setGeneratedTokenCode(randomToken);
-        }
-        savePurchaseToHistory(activeInvoice, selectedPayment);
-        setCheckoutStep('success');
-        showToast('Transaksi Berhasil Dikonfirmasi!', 'success');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }, 1800);
+      const completedInvoice = {
+        ...activeInvoice,
+        invoiceNo: result.data.invoiceId,
+        discountAmount: getDiscountAmount(),
+      };
+      setActiveInvoice(completedInvoice);
+      savePurchaseToHistory(completedInvoice, selectedPayment);
+      setCheckoutStep('success');
+      showToast('Pesanan simulasi tercatat. Pembayaran dan pengiriman produk belum diproses.', 'success');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Terjadi kesalahan yang tidak diketahui.';
+      showToast(`Pesanan simulasi gagal dibuat: ${message}`, 'error');
+    } finally {
+      setLoadingPayment(false);
     }
   };
 
@@ -927,11 +1012,44 @@ export default function WebVibesIDDigitalStore() {
       {
         ...invoice,
         paymentMethod,
-        status: 'Berhasil',
+        status: 'Simulasi',
         completedAt: new Date().toLocaleString('id-ID'),
       },
       ...currentHistory,
     ]);
+  };
+
+  const handleSubmitReview = async () => {
+    if (!activeInvoice || reviewSubmitting) return;
+    if (reviewRating < 1 || reviewRating > 5) {
+      showToast('Pilih bintang 1 sampai 5 untuk mengirim ulasan.', 'error');
+      return;
+    }
+
+    setReviewSubmitting(true);
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/v1/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          invoiceId: activeInvoice.invoiceNo,
+          rating: reviewRating,
+          comment: reviewComment.trim(),
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success || !result.data?.id) {
+        throw new Error(result.message || 'Ulasan tidak dapat dikirim.');
+      }
+      setReviews((currentReviews) => [result.data, ...currentReviews].slice(0, 100));
+      setReviewComment('');
+      showToast('Terima kasih, ulasan Anda berhasil dikirim.', 'success');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Terjadi kesalahan yang tidak diketahui.';
+      showToast(`Ulasan gagal dikirim: ${message}`, 'error');
+    } finally {
+      setReviewSubmitting(false);
+    }
   };
 
   return (
@@ -966,30 +1084,30 @@ export default function WebVibesIDDigitalStore() {
             {/* BRAND LOGO DENGAN TRIPLE CLICK UNTUK ADMIN */}
             <div onClick={handleLogoClick} className="flex items-center gap-3 cursor-pointer select-none group">
               <div className="relative">
-                <img src="/logo webvibesid.jpeg" alt="WebVibes ID" className="w-10 h-10 rounded-xl object-cover border border-blue-500/30 group-hover:border-blue-400 transition shadow-lg shadow-blue-900/30" />
+                <img src="/logo webvibesid.jpeg" alt="WEBVIBESID" className="w-10 h-10 rounded-xl object-cover border border-blue-500/30 group-hover:border-blue-400 transition shadow-lg shadow-blue-900/30" />
                 <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-[#07162e]"></span>
               </div>
               <div>
-                <span className="text-lg font-black tracking-wider block leading-none text-white">WEB<span className="text-[#1769E0]">VIBES</span>.ID</span>
+                <span className="text-lg font-black tracking-wider block leading-none text-white">WEB<span className="text-[#1769E0]">VIBESID</span></span>
                 <span className="text-[10px] text-slate-400 font-medium tracking-wider">PLATFORM DIGITAL INDONESIA</span>
               </div>
             </div>
             
             {/* DESKTOP NAV LINKS DENGAN IKON VEKTOR */}
             <div className="hidden lg:flex items-center gap-7 text-xs font-semibold text-slate-300">
-              <button onClick={() => { setCurrentView('home'); setSelectedProduct(null); setCheckoutStep('form'); }} className={`flex items-center gap-1.5 transition hover:text-white ${currentView === 'home' ? 'text-[#5da1ff] font-bold' : ''}`}>
+              <button onClick={() => navigateToCategory('home')} className={`flex items-center gap-1.5 transition hover:text-white ${currentView === 'home' ? 'text-[#5da1ff] font-bold' : ''}`}>
                 Beranda
               </button>
-              <button onClick={() => { setCurrentView('games'); setSelectedProduct(null); setCheckoutStep('form'); }} className={`flex items-center gap-1.5 transition hover:text-white ${currentView === 'games' ? 'text-[#5da1ff] font-bold' : ''}`}>
+              <button onClick={() => navigateToCategory('games')} className={`flex items-center gap-1.5 transition hover:text-white ${currentView === 'games' ? 'text-[#5da1ff] font-bold' : ''}`}>
                 Top Up Game
               </button>
-              <button onClick={() => { setCurrentView('voucher'); setSelectedVoucher(null); setSelectedVoucherDenom(null); setCheckoutStep('form'); }} className={`flex items-center gap-1.5 transition hover:text-white ${currentView === 'voucher' ? 'text-[#5da1ff] font-bold' : ''}`}>
+              <button onClick={() => navigateToCategory('voucher')} className={`flex items-center gap-1.5 transition hover:text-white ${currentView === 'voucher' ? 'text-[#5da1ff] font-bold' : ''}`}>
                 Voucher
               </button>
-              <button onClick={() => { setCurrentView('pulsa'); setCheckoutStep('form'); }} className={`flex items-center gap-1.5 transition hover:text-white ${currentView === 'pulsa' ? 'text-[#5da1ff] font-bold' : ''}`}>
+              <button onClick={() => navigateToCategory('pulsa')} className={`flex items-center gap-1.5 transition hover:text-white ${currentView === 'pulsa' ? 'text-[#5da1ff] font-bold' : ''}`}>
                 Pulsa & Data
               </button>
-              <button onClick={() => { setCurrentView('ppob'); setCheckoutStep('form'); }} className={`flex items-center gap-1.5 transition hover:text-white ${currentView === 'ppob' ? 'text-[#5da1ff] font-bold' : ''}`}>
+              <button onClick={() => navigateToCategory('ppob')} className={`flex items-center gap-1.5 transition hover:text-white ${currentView === 'ppob' ? 'text-[#5da1ff] font-bold' : ''}`}>
                 PPOB Listrik
               </button>
               <button onClick={() => { setCurrentView('promo'); setCheckoutStep('form'); }} className={`flex items-center gap-1.5 transition hover:text-white ${currentView === 'promo' ? 'text-[#5da1ff] font-bold' : ''}`}>
@@ -1007,34 +1125,8 @@ export default function WebVibesIDDigitalStore() {
           </div>
         </nav>
 
-        {/* RUNNING ANNOUNCEMENT TICKER (ANIMASI BANNER BERJALAN) */}
-        <div className="bg-[#081b38] border-b border-blue-900/30 py-2 px-4 overflow-hidden select-none">
-          <div className="max-w-7xl mx-auto flex items-center gap-3">
-            <span className="shrink-0 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider bg-blue-500/20 text-[#5da1ff] px-2.5 py-0.5 rounded-full border border-blue-500/30">
-              <IconSparkles className="w-3.5 h-3.5" />
-              Info Terkini
-            </span>
-            <div className="overflow-hidden relative w-full">
-              <div className="animate-ticker text-xs text-slate-300 font-medium whitespace-nowrap gap-12 flex">
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                  Gunakan voucher diskon <strong className="text-amber-300">HEMAT10</strong> untuk potongan langsung Rp5.000 semua game!
-                </span>
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse"></span>
-                  Siaran Langsung YouTube & TikTok WebVibes ID sedang tayang: Ikuti Mabar & Giveaway Diamond!
-                </span>
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
-                  Pengiriman Token PLN & Diamond Game otomatis masuk dalam 1-5 detik nonstop 24 jam.
-                </span>
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
-                  Pendaftaran Turnamen Komunitas Season 3 resmi dibuka, cek di menu Berita Terkini.
-                </span>
-              </div>
-            </div>
-          </div>
+        <div className="border-b border-slate-800 bg-[#0b1422] px-4 py-2 text-center text-xs text-slate-400">
+          Top-up game, voucher digital, pulsa, dan pembayaran tagihan dalam satu tempat.
         </div>
 
         {/* CHECKOUT & PEMBAYARAN */}
@@ -1043,7 +1135,7 @@ export default function WebVibesIDDigitalStore() {
             <div className="bg-[#091d3d] border border-blue-500/30 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
               <div className="text-center space-y-2 border-b border-slate-800 pb-4">
                 <span className="bg-amber-500/15 text-amber-300 border border-amber-500/30 text-xs px-3 py-1 rounded-full font-semibold inline-block">
-                  MENUNGGU PEMBAYARAN
+                  PESANAN DEMO
                 </span>
                 <h2 className="text-2xl font-black text-white">Konfirmasi & Pembayaran</h2>
                 <p className="text-xs text-slate-400">Nomor Invoice: <span className="font-mono text-blue-400">{activeInvoice.invoiceNo}</span></p>
@@ -1057,7 +1149,7 @@ export default function WebVibesIDDigitalStore() {
                 <div className="flex justify-between"><span className="text-slate-400">ID Tujuan / UID</span><span className="font-mono text-slate-200">{activeInvoice.target}</span></div>
                 <div className="flex justify-between"><span className="text-slate-400">Nominal Produk</span><span className="font-semibold text-white">{activeInvoice.denomName}</span></div>
                 <div className="flex justify-between border-t border-slate-800/80 pt-2"><span className="text-slate-400">Harga Produk</span><span className="font-semibold text-white">Rp {activeInvoice.price.toLocaleString('id-ID')}</span></div>
-                <div className="flex justify-between"><span className="text-slate-400">Biaya Layanan Admin</span><span className="text-white">Rp 1.000</span></div>
+                <div className="flex justify-between"><span className="text-slate-400">Biaya Layanan Admin</span><span className="text-white">Rp {activeInvoice.adminFee.toLocaleString('id-ID')}</span></div>
                 
                 {appliedPromo && (
                   <div className="flex justify-between text-emerald-400 font-semibold bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/20">
@@ -1069,7 +1161,7 @@ export default function WebVibesIDDigitalStore() {
                 <div className="flex justify-between border-t border-slate-800 pt-3 text-sm sm:text-base font-bold">
                   <span className="text-white">Total Pembayaran</span>
                   <span className="text-[#5da1ff] text-base sm:text-lg">
-                    Rp {(activeInvoice.price + 1000 - getDiscountAmount() > 0 ? activeInvoice.price + 1000 - getDiscountAmount() : 1000).toLocaleString('id-ID')}
+                    Rp {Math.max(0, activeInvoice.price + activeInvoice.adminFee - getDiscountAmount()).toLocaleString('id-ID')}
                   </span>
                 </div>
               </div>
@@ -1085,7 +1177,7 @@ export default function WebVibesIDDigitalStore() {
                   >
                     <span className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-blue-400"></span>
-                      {m === 'QRIS' ? 'QRIS Real-Time (Semua Bank & E-Wallet)' : `E-Wallet ${m} Instan`}
+                      {m === 'QRIS' ? 'QRIS (simulasi)' : `${m} (simulasi)`}
                     </span>
                     <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${selectedPayment === m ? 'border-blue-500 bg-blue-600' : 'border-slate-600'}`}>
                       {selectedPayment === m && <span className="w-1.5 h-1.5 bg-white rounded-full"></span>}
@@ -1095,11 +1187,14 @@ export default function WebVibesIDDigitalStore() {
               </div>
 
               {selectedPayment === 'QRIS' && (
-                <div className="bg-white p-5 rounded-2xl text-center space-y-3 animate-in fade-in">
-                  <img src="/qris-webvibes.jpeg" alt="Kode QRIS WebVibes ID" className="mx-auto w-full max-w-[300px] rounded-xl shadow-md border" />
-                  <p className="text-xs text-slate-700 font-semibold">Pindai QRIS menggunakan BCA, Mandiri, BRI, DANA, GoPay, OVO, atau ShopeePay.</p>
+                <div className="bg-[#051226] border border-slate-800 p-5 rounded-2xl text-center space-y-2 animate-in fade-in">
+                  <p className="text-sm font-bold text-white">QRIS belum tersedia untuk pembayaran nyata</p>
+                  <p className="text-xs text-slate-400">Konfirmasi di bawah hanya mencatat pesanan simulasi dan tidak melakukan pembayaran.</p>
                 </div>
               )}
+              <p className="text-xs text-amber-200 bg-amber-500/10 border border-amber-500/20 rounded-xl p-3">
+                Pembayaran saat ini hanya simulasi. Sistem belum terhubung ke payment gateway atau penyedia produk.
+              </p>
 
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block">Gunakan Kode Voucher</label>
@@ -1117,7 +1212,7 @@ export default function WebVibesIDDigitalStore() {
                   onClick={handleProcessPayment} disabled={loadingPayment}
                   className="w-full py-4 bg-[#1769E0] hover:bg-blue-600 font-extrabold rounded-2xl shadow-xl transition text-sm sm:text-base text-center block text-white"
                 >
-                  {loadingPayment ? 'Menghubungkan ke Gateway...' : `Bayar Sekarang via ${selectedPayment}`}
+                  {loadingPayment ? 'Mencatat pesanan demo...' : `Buat Pesanan Demo via ${selectedPayment}`}
                 </button>
                 <button onClick={() => setCheckoutStep('form')} className="w-full text-xs text-slate-400 hover:text-white py-2 flex items-center justify-center gap-1">
                   <IconArrowLeft className="w-3.5 h-3.5" />
@@ -1130,28 +1225,19 @@ export default function WebVibesIDDigitalStore() {
           /* STATUS TRANSAKSI BERHASIL */
           <div className="max-w-lg mx-auto px-4 sm:px-6 py-12 animate-in zoom-in">
             <div id="receipt-print" className="bg-[#091d3d] border border-emerald-500/40 rounded-3xl p-6 sm:p-8 space-y-6 text-center shadow-2xl">
-              <div className="receipt-brand text-xs font-black tracking-[0.24em] text-[#5da1ff]">WEBVIBES.ID DIGITAL STORE</div>
+              <div className="receipt-brand text-xs font-black tracking-[0.24em] text-[#5da1ff]">WEBVIBESID DIGITAL STORE</div>
               <div className="w-14 h-14 bg-emerald-500/15 text-emerald-400 rounded-full flex items-center justify-center mx-auto border-2 border-emerald-500/60 shadow-lg">
                 <IconCheck className="w-7 h-7" />
               </div>
               <div className="space-y-1">
-                <h2 className="text-2xl font-black text-white">TRANSAKSI BERHASIL</h2>
-                <p className="text-xs text-slate-300">Pesanan telah berhasil diproses otomatis oleh sistem WebVibes ID.</p>
+                <h2 className="text-2xl font-black text-white">SIMULASI SELESAI</h2>
+                <p className="text-xs text-slate-300">Ini pratinjau alur pesanan. Pembayaran dan pengiriman produk belum diproses sungguhan.</p>
               </div>
 
               {activeInvoice.productName.includes('Token PLN') && (
                 <div className="bg-[#051226] border border-emerald-500/50 rounded-2xl p-5 space-y-3">
-                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest block">KODE TOKEN LISTRIK (20 DIGIT STROOM)</span>
-                  <div className="text-lg sm:text-2xl font-mono font-black text-white tracking-widest bg-[#091d3d] p-3 rounded-xl border border-slate-800 select-all">
-                    {generatedTokenCode}
-                  </div>
-                  <button 
-                    onClick={() => { navigator.clipboard.writeText(generatedTokenCode); showToast('Kode token berhasil disalin ke clipboard!', 'success'); }}
-                    className="no-print w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow"
-                  >
-                    <IconCopy className="w-4 h-4" />
-                    Salin Kode Token
-                  </button>
+                  <span className="text-xs font-bold text-amber-300 uppercase tracking-widest block">TOKEN BELUM DITERBITKAN</span>
+                  <p className="text-xs text-slate-300">Penerbitan token PLN memerlukan integrasi resmi dengan penyedia layanan.</p>
                 </div>
               )}
 
@@ -1163,10 +1249,71 @@ export default function WebVibesIDDigitalStore() {
                 )}
                 <div className="flex justify-between"><span className="text-slate-400">Tujuan / Meter / ID</span><span className="font-mono text-slate-200">{activeInvoice.target}</span></div>
                 <div className="flex justify-between"><span className="text-slate-400">Nominal</span><span className="font-semibold text-white">{activeInvoice.denomName}</span></div>
-                <div className="flex justify-between"><span className="text-slate-400">Waktu Pembayaran</span><span className="text-white">{activeInvoice.time}</span></div>
-                <div className="flex justify-between"><span className="text-slate-400">Status</span><span className="text-emerald-400 font-bold">Lunas / Sukses</span></div>
-                <div className="flex justify-between border-t border-slate-800 pt-2 font-bold text-sm"><span className="text-slate-400">Total Biaya</span><span className="text-emerald-400">Rp {(activeInvoice.price + 1000 - getDiscountAmount()).toLocaleString('id-ID')}</span></div>
+                <div className="flex justify-between"><span className="text-slate-400">Waktu Simulasi</span><span className="text-white">{activeInvoice.time}</span></div>
+                <div className="flex justify-between"><span className="text-slate-400">Status</span><span className="text-amber-300 font-bold">Simulasi</span></div>
+                <div className="flex justify-between border-t border-slate-800 pt-2 font-bold text-sm"><span className="text-slate-400">Total Biaya</span><span className="text-emerald-400">Rp {Math.max(0, activeInvoice.price + activeInvoice.adminFee - getDiscountAmount()).toLocaleString('id-ID')}</span></div>
               </div>
+
+              {reviews.some((review) => review.invoiceId === activeInvoice.invoiceNo) ? (
+                <p className="no-print rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-left text-sm text-emerald-200">
+                  Terima kasih, ulasan untuk transaksi ini sudah diterima.
+                </p>
+              ) : reviewDismissedInvoice !== activeInvoice.invoiceNo ? (
+                <div className="no-print space-y-3 rounded-2xl border border-slate-800 bg-[#051226] p-4 text-left">
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Bagaimana pengalaman Anda?</h3>
+                    <p className="mt-1 text-xs text-slate-400">Ulasan ini opsional. Pembelian yang ditampilkan masih berupa simulasi.</p>
+                  </div>
+                  <div>
+                    <span className="mb-2 block text-xs font-semibold text-slate-300">Beri bintang</span>
+                    <div className="flex gap-1" role="radiogroup" aria-label="Rating ulasan">
+                      {[1, 2, 3, 4, 5].map((rating) => (
+                        <button
+                          key={rating}
+                          type="button"
+                          role="radio"
+                          aria-checked={reviewRating === rating}
+                          aria-label={`${rating} bintang`}
+                          onClick={() => setReviewRating(rating)}
+                          className={`rounded p-1 text-2xl leading-none transition ${rating <= reviewRating ? 'text-amber-400' : 'text-slate-600 hover:text-amber-300'}`}
+                        >
+                          ★
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <label className="block text-xs font-semibold text-slate-300" htmlFor="transaction-review">
+                    Komentar (opsional)
+                  </label>
+                  <textarea
+                    id="transaction-review"
+                    maxLength={500}
+                    rows={3}
+                    value={reviewComment}
+                    onChange={(event) => setReviewComment(event.target.value)}
+                    placeholder="Ceritakan pengalaman Anda..."
+                    className="w-full resize-y rounded-xl border border-slate-700 bg-[#091d3d] px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-blue-500 focus:outline-none"
+                  />
+                  <p className="text-right text-[11px] text-slate-500">{reviewComment.length}/500</p>
+                  <div className="flex flex-col-reverse gap-2 sm:flex-row">
+                    <button
+                      type="button"
+                      onClick={() => setReviewDismissedInvoice(activeInvoice.invoiceNo)}
+                      className="flex-1 rounded-xl border border-slate-700 px-4 py-2.5 text-xs font-semibold text-slate-300 transition hover:bg-slate-800"
+                    >
+                      Lewati
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSubmitReview}
+                      disabled={reviewSubmitting || reviewRating === 0}
+                      className="flex-1 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {reviewSubmitting ? 'Mengirim ulasan...' : 'Kirim Ulasan'}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
 
               <div className="no-print receipt-actions flex gap-3">
                 <button onClick={() => { navigator.clipboard.writeText(activeInvoice.invoiceNo); showToast('Nomor invoice berhasil disalin!', 'success'); }} className="flex-1 py-3 bg-[#051226] border border-slate-800 hover:border-blue-500 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5">
@@ -1217,7 +1364,7 @@ export default function WebVibesIDDigitalStore() {
                       <div><p className="text-slate-500">Nominal</p><p className="mt-0.5 font-semibold text-white">{purchase.denomName}</p></div>
                       <div><p className="text-slate-500">Metode</p><p className="mt-0.5 font-semibold text-white">{purchase.paymentMethod}</p></div>
                       <div><p className="text-slate-500">Tujuan</p><p className="mt-0.5 font-semibold text-white truncate">{purchase.target}</p></div>
-                      <div><p className="text-slate-500">Total</p><p className="mt-0.5 font-bold text-[#5da1ff]">Rp {(purchase.price + purchase.adminFee).toLocaleString('id-ID')}</p></div>
+                      <div><p className="text-slate-500">Total</p>                      <p className="mt-0.5 font-bold text-[#5da1ff]">Rp {Math.max(0, purchase.price + purchase.adminFee - (purchase.discountAmount || 0)).toLocaleString('id-ID')}</p></div>
                     </div>
                   </article>
                 ))}
@@ -1287,7 +1434,7 @@ export default function WebVibesIDDigitalStore() {
               <div className="bg-[#091d3d] border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
                 <div className="flex justify-between items-center border-b border-slate-800 pb-4">
                   <div>
-                    <h1 className="text-lg sm:text-xl font-black text-white">Pengaturan Toko WebVibes ID</h1>
+                    <h1 className="text-lg sm:text-xl font-black text-white">Pengaturan Toko WEBVIBESID</h1>
                     <p className="text-xs text-emerald-400 font-medium flex items-center gap-1.5 mt-0.5">
                       <IconCheck className="w-3.5 h-3.5" /> Terotentikasi sebagai Admin
                     </p>
@@ -1335,7 +1482,7 @@ export default function WebVibesIDDigitalStore() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-6">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Katalog Top-Up Game</h1>
-                <p className="text-xs sm:text-sm text-slate-400 mt-1">Tersedia {allGamesList.length} game populer dengan pengiriman instan otomatis.</p>
+                <p className="text-xs sm:text-sm text-slate-400 mt-1">Tersedia {visibleGames.length} game. Pilih game lalu tentukan nominal yang ingin dibeli.</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 {['Semua', 'Mobile', 'PC', 'RPG', 'FPS', 'Casual'].map((tab) => (
@@ -1350,9 +1497,7 @@ export default function WebVibesIDDigitalStore() {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-              {allGamesList
-                .filter(g => activeGameTab === 'Semua' || g.category === activeGameTab)
-                .map((game) => (
+              {visibleGames.length ? visibleGames.map((game) => (
                   <div 
                     key={game.id} onClick={() => { 
                       setSelectedProduct(game); 
@@ -1379,7 +1524,11 @@ export default function WebVibesIDDigitalStore() {
                       </div>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <p className="col-span-full rounded-lg border border-slate-800 bg-[#091d3d] p-6 text-center text-sm text-slate-400">
+                    Game tidak ditemukan. Coba kata kunci lain.
+                  </p>
+                )}
             </div>
           </div>
         ) : currentView === 'detail' && selectedProduct ? (
@@ -1398,7 +1547,7 @@ export default function WebVibesIDDigitalStore() {
                   <img src={selectedProduct.image} alt={selectedProduct.name} className="w-16 h-16 rounded-2xl object-cover border border-slate-700" />
                   <div>
                     <h1 className="text-xl sm:text-2xl font-bold text-white">{selectedProduct.name}</h1>
-                    <p className="text-xs text-slate-400 mt-1">Publisher: {selectedProduct.publisher} • Proses Otomatis 1-5 Detik</p>
+                    <p className="text-xs text-slate-400 mt-1">Publisher: {selectedProduct.publisher} • Pilih nominal untuk melihat ringkasan pesanan.</p>
                   </div>
                 </div>
 
@@ -1439,7 +1588,7 @@ export default function WebVibesIDDigitalStore() {
                         {selectedProduct.id === 'valorant' ? 'Riot ID / Name#Tag' : selectedProduct.id === 'roblox' ? 'Username / User ID' : selectedProduct.id === 'pb' ? 'ID Akun Zepetto Point Blank' : 'Game ID / User ID'}
                       </label>
                       <input 
-                        type="text" placeholder={selectedProduct.id === 'valorant' ? 'Cth: Player#1234' : selectedProduct.id === 'pb' ? 'Cth: troopers_id123' : 'Cth: 12345678'} value={gameId} onChange={(e) => setGameId(e.target.value)} 
+                        type="text" placeholder={selectedProduct.id === 'valorant' ? 'Cth: Player#1234' : selectedProduct.id === 'pb' ? 'Cth: troopers_id123' : 'Cth: 12345678'} value={gameId} onChange={(e) => { setGameId(e.target.value); setVerifiedAccount(null); }}
                         className="w-full bg-[#051226] border border-slate-800 rounded-xl px-4 py-3 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500 font-mono" 
                       />
                     </div>
@@ -1447,7 +1596,7 @@ export default function WebVibesIDDigitalStore() {
                       <div>
                         <label className="text-xs text-slate-300 mb-1.5 block font-medium">Server ID (Zone ID)</label>
                         <input 
-                          type="text" placeholder="Cth: 1234" value={serverId} onChange={(e) => setServerId(e.target.value)} 
+                          type="text" placeholder="Cth: 1234" value={serverId} onChange={(e) => { setServerId(e.target.value); setVerifiedAccount(null); }}
                           className="w-full bg-[#051226] border border-slate-800 rounded-xl px-4 py-3 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500 font-mono" 
                         />
                       </div>
@@ -1467,7 +1616,7 @@ export default function WebVibesIDDigitalStore() {
                       <div className="text-xs">
                         {verifiedAccount.username ? (
                           <span className="text-emerald-400 font-bold flex items-center gap-1">
-                            <IconCheck className="w-4 h-4" /> Akun Ditemukan: {verifiedAccount.username}
+                            <IconCheck className="w-4 h-4" /> Hasil cek demo: {verifiedAccount.username}
                           </span>
                         ) : (
                           <span className="text-rose-400 font-bold flex items-center gap-1">
@@ -1578,7 +1727,7 @@ export default function WebVibesIDDigitalStore() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-6">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Voucher Digital</h1>
-                <p className="text-xs sm:text-sm text-slate-400 mt-1">Voucher resmi Steam Wallet, Google Play, PlayStation Store, dan Roblox Gift Card.</p>
+                <p className="text-xs sm:text-sm text-slate-400 mt-1">Pilih produk dan nominal voucher digital yang tersedia.</p>
               </div>
               <span className="text-xs text-slate-400 font-medium">{vouchersList.length} Voucher Tersedia</span>
             </div>
@@ -1623,7 +1772,7 @@ export default function WebVibesIDDigitalStore() {
                   <img src={selectedVoucher.image} alt={selectedVoucher.name} className="w-16 h-16 rounded-2xl object-cover border border-slate-700" />
                   <div>
                     <h1 className="text-xl sm:text-2xl font-bold text-white">{selectedVoucher.name}</h1>
-                    <p className="text-xs text-slate-400 mt-1">{selectedVoucher.publisher} • Kode terkirim otomatis 1–5 menit</p>
+                    <p className="text-xs text-slate-400 mt-1">{selectedVoucher.publisher} • Email penerima dibutuhkan untuk simulasi pesanan.</p>
                     <p className="text-xs text-slate-300 mt-1 leading-relaxed">{selectedVoucher.description}</p>
                   </div>
                 </div>
@@ -1715,9 +1864,9 @@ export default function WebVibesIDDigitalStore() {
                   </button>
 
                   <div className="space-y-2 pt-2 border-t border-slate-800">
-                    <div className="flex items-center gap-2 text-[11px] text-slate-400"><IconShieldCheck className="w-3.5 h-3.5 text-emerald-400" /><span>Voucher 100% Resmi & Bergaransi</span></div>
-                    <div className="flex items-center gap-2 text-[11px] text-slate-400"><IconClock className="w-3.5 h-3.5 text-blue-400" /><span>Pengiriman 1–5 menit via email</span></div>
-                    <div className="flex items-center gap-2 text-[11px] text-slate-400"><IconCheck className="w-3.5 h-3.5 text-purple-400" /><span>Tidak perlu login akun platform</span></div>
+                    <div className="flex items-center gap-2 text-[11px] text-slate-400"><IconShieldCheck className="w-3.5 h-3.5 text-emerald-400" /><span>Nominal dan harga terlihat sebelum checkout</span></div>
+                    <div className="flex items-center gap-2 text-[11px] text-slate-400"><IconClock className="w-3.5 h-3.5 text-blue-400" /><span>Pembayaran dan pengiriman belum aktif</span></div>
+                    <div className="flex items-center gap-2 text-[11px] text-slate-400"><IconCheck className="w-3.5 h-3.5 text-purple-400" /><span>Isi email penerima untuk melanjutkan</span></div>
                   </div>
                 </div>
               </div>
@@ -1743,7 +1892,7 @@ export default function WebVibesIDDigitalStore() {
                   )}
                 </div>
                 <input 
-                  type="text" placeholder="Contoh: 081234567890" value={phoneNumber} onChange={(e) => handlePhoneChange(e.target.value)}
+                  type="tel" inputMode="tel" placeholder="Contoh: 081234567890" value={phoneNumber} onChange={(e) => handlePhoneChange(e.target.value)}
                   className="w-full bg-[#051226] border border-slate-800 rounded-2xl px-5 py-4 text-sm sm:text-base text-white focus:outline-none focus:border-blue-500 tracking-wider font-mono"
                 />
               </div>
@@ -1767,10 +1916,7 @@ export default function WebVibesIDDigitalStore() {
                   ].map((item, idx) => (
                     <div 
                       key={idx} 
-                      onClick={() => {
-                        if (!phoneNumber || phoneNumber.length < 10) return showToast('Masukkan nomor HP yang valid terlebih dahulu!', 'error');
-                        handleProceedToCheckout(`Pulsa ${detectedOperator?.name || 'Seluler'} ${item.name}`, { name: item.name, price: item.price }, phoneNumber, 'Pulsa & Paket Data');
-                      }}
+                      onClick={() => handleSelectPhoneProduct(item)}
                       className="bg-[#051226] border border-slate-800 hover:border-blue-500/60 p-4 rounded-2xl cursor-pointer transition flex flex-col justify-between group shadow"
                     >
                       <span className="font-bold text-sm sm:text-base text-white group-hover:text-[#5da1ff] transition">{item.name}</span>
@@ -1787,10 +1933,7 @@ export default function WebVibesIDDigitalStore() {
                   ].map((item, idx) => (
                     <div 
                       key={idx} 
-                      onClick={() => {
-                        if (!phoneNumber || phoneNumber.length < 10) return showToast('Masukkan nomor HP yang valid terlebih dahulu!', 'error');
-                        handleProceedToCheckout(`Paket Data ${detectedOperator?.name || 'Telkomsel'} ${item.name}`, { name: `${item.name} (${item.active})`, price: item.price }, phoneNumber, 'Pulsa & Paket Data');
-                      }}
+                      onClick={() => handleSelectPhoneProduct(item, true)}
                       className="bg-[#051226] border border-slate-800 hover:border-blue-500/60 p-4 rounded-2xl cursor-pointer transition flex flex-col justify-between group shadow"
                     >
                       <div>
@@ -1813,7 +1956,7 @@ export default function WebVibesIDDigitalStore() {
           <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 space-y-8 animate-in fade-in">
             <div className="space-y-2 text-center">
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Layanan PPOB & Pembayaran Tagihan</h1>
-              <p className="text-slate-400 text-xs sm:text-sm">Beli token listrik PLN prabayar dan lunasi tagihan IndiHome dengan verifikasi langsung.</p>
+              <p className="text-slate-400 text-xs sm:text-sm">Pilih nominal token PLN atau cek contoh tagihan IndiHome (mode simulasi).</p>
             </div>
 
             <div className="bg-[#091d3d] border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-8 shadow-2xl">
@@ -1827,7 +1970,7 @@ export default function WebVibesIDDigitalStore() {
                   <label className="text-xs text-slate-300 font-bold uppercase tracking-wider mb-2 block">Nomor Meter / ID Pelanggan PLN</label>
                   <div className="flex gap-2 sm:gap-3">
                     <input 
-                      type="text" placeholder="Masukkan ID Pelanggan / Nomor Meter" value={plnId} onChange={(e) => setPlnId(e.target.value)}
+                      type="text" placeholder="Masukkan ID Pelanggan / Nomor Meter" value={plnId} onChange={(e) => { setPlnId(e.target.value.replace(/\D/g, '')); setPlnCustomerData(null); }}
                       className="flex-1 bg-[#051226] border border-slate-800 rounded-2xl px-4 sm:px-5 py-3.5 sm:py-4 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500 font-mono"
                     />
                     <button onClick={handleCheckPlnId} className="px-5 sm:px-6 py-3.5 sm:py-4 bg-blue-600 hover:bg-blue-500 font-bold rounded-2xl text-xs transition text-white">
@@ -1839,7 +1982,7 @@ export default function WebVibesIDDigitalStore() {
                 {plnCustomerData && (
                   <div className="bg-[#051226] border border-emerald-500/40 rounded-2xl p-4 text-xs flex items-center gap-2">
                     <IconCheck className="w-4 h-4 text-emerald-400" />
-                    <span className="text-emerald-400 font-bold">Pelanggan Terverifikasi: {plnCustomerData.name}</span>
+                    <span className="text-emerald-400 font-bold">Hasil cek demo: {plnCustomerData.name}</span>
                   </div>
                 )}
 
@@ -1876,7 +2019,7 @@ export default function WebVibesIDDigitalStore() {
                   <label className="text-xs text-slate-300 font-bold uppercase tracking-wider mb-2 block">Nomor Pelanggan IndiHome</label>
                   <div className="flex gap-2 sm:gap-3">
                     <input 
-                      type="text" placeholder="Masukkan nomor pelanggan IndiHome" value={indihomeId} onChange={(e) => setIndihomeId(e.target.value)}
+                      type="text" placeholder="Masukkan nomor pelanggan IndiHome" value={indihomeId} onChange={(e) => { setIndihomeId(e.target.value.replace(/\D/g, '')); setIndihomeData(null); }}
                       className="flex-1 bg-[#051226] border border-slate-800 rounded-2xl px-4 sm:px-5 py-3.5 sm:py-4 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500 font-mono"
                     />
                     <button onClick={handleCheckIndihome} className="px-5 sm:px-6 py-3.5 sm:py-4 bg-blue-600 hover:bg-blue-500 font-bold rounded-2xl text-xs transition text-white">
@@ -1893,7 +2036,7 @@ export default function WebVibesIDDigitalStore() {
                     <div className="flex justify-between"><span className="text-slate-400">Biaya Admin</span><span className="text-white">Rp {indihomeData.adminFee.toLocaleString('id-ID')}</span></div>
                     <div className="flex justify-between border-t border-slate-800 pt-2 font-bold text-sm"><span className="text-slate-400">Total Tagihan</span><span className="text-emerald-400">Rp {(indihomeData.billAmount + indihomeData.adminFee).toLocaleString('id-ID')}</span></div>
                     <button 
-                      onClick={() => handleProceedToCheckout('Tagihan IndiHome', { name: indihomeData.period, price: indihomeData.billAmount + indihomeData.adminFee }, indihomeId, 'PPOB IndiHome')}
+                      onClick={() => handleProceedToCheckout('Tagihan IndiHome', { name: indihomeData.period, price: indihomeData.billAmount }, indihomeId, 'PPOB IndiHome', indihomeData.adminFee)}
                       className="w-full mt-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow"
                     >
                       Bayar Sekarang
@@ -1908,27 +2051,34 @@ export default function WebVibesIDDigitalStore() {
           <div className="space-y-16 sm:space-y-20 animate-in fade-in">
             
             {/* HERO BANNER SECTION */}
-            <section className="relative overflow-hidden py-14 lg:py-20 px-4 sm:px-6 border-b border-slate-800/80 bg-gradient-to-b from-[#081a38] via-[#06152d] to-[#051124]">
-              <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-                <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-                  
-                  {/* BADGE TRUST INDONESIA */}
-                  <div className="inline-flex items-center gap-2 bg-blue-600/10 border border-blue-500/20 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#5da1ff]">
-                    <IconShieldCheck className="w-4 h-4 text-blue-400" />
-                    <span>Platform Top-Up & PPOB Resmi Bergaransi</span>
-                  </div>
-
-                  <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight text-white">
+            <section className="relative isolate min-h-110 overflow-hidden border-b border-slate-800 bg-slate-900 px-4 py-14 sm:px-6 lg:py-20">
+              <div aria-hidden="true" className="absolute inset-0 -z-10 overflow-hidden">
+                {[
+                  '/banner Top Up.png',
+                  '/banner Gaming Channel.png',
+                  '/banner Konter Pulsa Banner.png',
+                ].map((src, index) => (
+                  <img
+                    key={src}
+                    src={src}
+                    alt=""
+                    className="animate-banner-slide absolute inset-0 h-full w-full object-contain"
+                    style={{ animationDelay: `${index * 6}s` }}
+                  />
+                ))}
+              </div>
+              <div className="relative z-10 mx-auto flex min-h-75 max-w-7xl items-center">
+                <div className="w-full max-w-3xl space-y-6">
+                  <h1 className="text-3xl font-bold leading-tight text-white [text-shadow:0_2px_12px_rgba(0,0,0,0.95)] sm:text-5xl">
                     Solusi Top-Up Game & Tagihan Digital Terpercaya
                   </h1>
                   
-                  <p className="text-slate-300 text-sm sm:text-base max-w-xl mx-auto lg:mx-0 leading-relaxed">
-                    Nikmati kemudahan transaksi instan 24 jam untuk diamond game favorit, voucher digital, token listrik PLN, dan pulsa dengan sistem otomatis tanpa antre.
+                  <p className="max-w-xl text-sm leading-relaxed text-white [text-shadow:0_1px_8px_rgba(0,0,0,0.95)] sm:text-base">
+                    Pilih layanan, masukkan data tujuan, lalu lanjutkan ke ringkasan pesanan. Harga dan nominal ditampilkan sebelum checkout.
                   </p>
 
-                  {/* KOTAK PENCARIAN CEPAT */}
-                  <div className="flex bg-[#071730] border border-slate-700/80 rounded-2xl p-1.5 max-w-lg mx-auto lg:mx-0 shadow-xl focus-within:border-blue-500 transition">
-                    <div className="pl-3.5 flex items-center text-slate-400">
+                  <div className="flex w-full max-w-lg rounded-lg border border-slate-600 bg-slate-950/80 p-1 focus-within:border-blue-400">
+                    <div className="flex items-center pl-3 text-slate-400">
                       <IconSearch className="w-4 h-4" />
                     </div>
                     <input 
@@ -1936,56 +2086,30 @@ export default function WebVibesIDDigitalStore() {
                       placeholder="Cari Mobile Legends, Free Fire, Token PLN, Pulsa..." 
                       value={searchQuery} 
                       onChange={(e) => setSearchQuery(e.target.value)} 
-                      className="flex-1 bg-transparent px-3 py-2.5 text-xs sm:text-sm text-white focus:outline-none placeholder:text-slate-500" 
+                      className="min-w-0 flex-1 bg-transparent px-3 py-2.5 text-xs text-white focus:outline-none placeholder:text-slate-400 sm:text-sm"
                     />
-                    <button onClick={() => setCurrentView('games')} className="px-5 py-2.5 bg-[#1769E0] hover:bg-blue-600 text-white font-bold rounded-xl text-xs sm:text-sm transition shadow">
-                      Jelajahi
+                    <button onClick={() => navigateToCategory('games')} className="shrink-0 rounded-md bg-blue-700 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-600 sm:px-5 sm:text-sm">
+                      Cari Game
                     </button>
                   </div>
 
-                  {/* CHIP KATEGORI CEPAT DENGAN IKON VEKTOR */}
-                  <div className="flex flex-wrap gap-2 pt-1 justify-center lg:justify-start text-xs font-semibold">
-                    <button onClick={() => setCurrentView('games')} className="px-3.5 py-2 bg-[#091d3d] border border-slate-800 hover:border-blue-500 rounded-xl transition flex items-center gap-1.5 text-slate-200">
+                  <div className="flex flex-wrap gap-2 pt-1 text-xs font-medium">
+                    <button onClick={() => navigateToCategory('games')} className="flex items-center gap-1.5 rounded-md border border-slate-500 bg-slate-900/70 px-3.5 py-2 text-slate-100 transition hover:bg-slate-800">
                       <IconGamepad className="w-4 h-4 text-blue-400" />
                       Game
                     </button>
-                    <button onClick={() => setCurrentView('voucher')} className="px-3.5 py-2 bg-[#091d3d] border border-slate-800 hover:border-blue-500 rounded-xl transition flex items-center gap-1.5 text-slate-200">
+                    <button onClick={() => navigateToCategory('voucher')} className="flex items-center gap-1.5 rounded-md border border-slate-500 bg-slate-900/70 px-3.5 py-2 text-slate-100 transition hover:bg-slate-800">
                       <IconTicket className="w-4 h-4 text-purple-400" />
                       Voucher
                     </button>
-                    <button onClick={() => setCurrentView('pulsa')} className="px-3.5 py-2 bg-[#091d3d] border border-slate-800 hover:border-blue-500 rounded-xl transition flex items-center gap-1.5 text-slate-200">
+                    <button onClick={() => navigateToCategory('pulsa')} className="flex items-center gap-1.5 rounded-md border border-slate-500 bg-slate-900/70 px-3.5 py-2 text-slate-100 transition hover:bg-slate-800">
                       <IconSmartphone className="w-4 h-4 text-emerald-400" />
                       Pulsa
                     </button>
-                    <button onClick={() => setCurrentView('ppob')} className="px-3.5 py-2 bg-[#091d3d] border border-slate-800 hover:border-blue-500 rounded-xl transition flex items-center gap-1.5 text-slate-200">
+                    <button onClick={() => navigateToCategory('ppob')} className="flex items-center gap-1.5 rounded-md border border-slate-500 bg-slate-900/70 px-3.5 py-2 text-slate-100 transition hover:bg-slate-800">
                       <IconZap className="w-4 h-4 text-amber-400" />
                       PPOB Listrik
                     </button>
-                  </div>
-                </div>
-
-                {/* HERO BANNER SLIDER - FOTO BERJALAN KE SAMPING */}
-                <div className="lg:col-span-5 flex justify-center items-center">
-                  <div className="w-full overflow-hidden rounded-3xl shadow-2xl">
-                    <div className="animate-banner-scroll flex gap-3">
-                      {[
-                        { src: '/banner Top Up.png', alt: 'Banner Top Up Game', onClick: () => setCurrentView('games') },
-                        { src: '/banner Gaming Channel.png', alt: 'Banner Gaming Channel', onClick: () => setCurrentView('games') },
-                        { src: '/banner Konter Pulsa Banner.png', alt: 'Banner Konter Pulsa', onClick: () => setCurrentView('pulsa') },
-                        { src: '/banner Top Up.png', alt: 'Banner Top Up Game', onClick: () => setCurrentView('games') },
-                        { src: '/banner Gaming Channel.png', alt: 'Banner Gaming Channel', onClick: () => setCurrentView('games') },
-                        { src: '/banner Konter Pulsa Banner.png', alt: 'Banner Konter Pulsa', onClick: () => setCurrentView('pulsa') },
-                      ].map((b, i) => (
-                        <button
-                          key={i}
-                          onClick={b.onClick}
-                          className="shrink-0 rounded-2xl overflow-hidden focus:outline-none hover:opacity-90 transition-opacity"
-                          style={{ width: '100%', minWidth: '320px', maxWidth: '480px' }}
-                        >
-                          <img src={b.src} alt={b.alt} className="w-full h-full object-cover block rounded-2xl" draggable={false} />
-                        </button>
-                      ))}
-                    </div>
                   </div>
                 </div>
               </div>
@@ -1995,7 +2119,7 @@ export default function WebVibesIDDigitalStore() {
             <section className="max-w-7xl mx-auto px-4 sm:px-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
                 
-                <div onClick={() => setCurrentView('games')} className="bg-[#091d3d] border border-slate-800 hover:border-blue-500/60 rounded-3xl p-6 space-y-4 shadow-xl transition cursor-pointer group flex flex-col justify-between">
+                <div onClick={() => navigateToCategory('games')} className="bg-[#091d3d] border border-slate-800 hover:border-blue-500/60 rounded-xl p-5 space-y-4 transition cursor-pointer group flex flex-col justify-between">
                   <div className="space-y-3">
                     <div className="w-12 h-12 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-[#5da1ff] group-hover:scale-110 transition">
                       <IconGamepad className="w-6 h-6" />
@@ -2008,7 +2132,7 @@ export default function WebVibesIDDigitalStore() {
                   </span>
                 </div>
 
-                <div onClick={() => setCurrentView('voucher')} className="bg-[#091d3d] border border-slate-800 hover:border-blue-500/60 rounded-3xl p-6 space-y-4 shadow-xl transition cursor-pointer group flex flex-col justify-between">
+                <div onClick={() => navigateToCategory('voucher')} className="bg-[#091d3d] border border-slate-800 hover:border-blue-500/60 rounded-xl p-5 space-y-4 transition cursor-pointer group flex flex-col justify-between">
                   <div className="space-y-3">
                     <div className="w-12 h-12 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400 group-hover:scale-110 transition">
                       <IconTicket className="w-6 h-6" />
@@ -2021,7 +2145,7 @@ export default function WebVibesIDDigitalStore() {
                   </span>
                 </div>
 
-                <div onClick={() => setCurrentView('pulsa')} className="bg-[#091d3d] border border-slate-800 hover:border-blue-500/60 rounded-3xl p-6 space-y-4 shadow-xl transition cursor-pointer group flex flex-col justify-between">
+                <div onClick={() => navigateToCategory('pulsa')} className="bg-[#091d3d] border border-slate-800 hover:border-blue-500/60 rounded-xl p-5 space-y-4 transition cursor-pointer group flex flex-col justify-between">
                   <div className="space-y-3">
                     <div className="w-12 h-12 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition">
                       <IconSmartphone className="w-6 h-6" />
@@ -2034,7 +2158,7 @@ export default function WebVibesIDDigitalStore() {
                   </span>
                 </div>
 
-                <div onClick={() => setCurrentView('ppob')} className="bg-[#091d3d] border border-slate-800 hover:border-blue-500/60 rounded-3xl p-6 space-y-4 shadow-xl transition cursor-pointer group flex flex-col justify-between">
+                <div onClick={() => navigateToCategory('ppob')} className="bg-[#091d3d] border border-slate-800 hover:border-blue-500/60 rounded-xl p-5 space-y-4 transition cursor-pointer group flex flex-col justify-between">
                   <div className="space-y-3">
                     <div className="w-12 h-12 rounded-2xl bg-amber-600/20 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-110 transition">
                       <IconZap className="w-6 h-6" />
@@ -2107,13 +2231,10 @@ export default function WebVibesIDDigitalStore() {
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800 pb-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-xl sm:text-2xl font-extrabold text-white">Live Para Gamers & Streamer Populer</h2>
-                    <span className="relative flex h-2.5 w-2.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
-                    </span>
+                    <h2 className="text-xl sm:text-2xl font-extrabold text-white">Jadwal Live Gamer & Streamer</h2>
+                    <IconClock className="h-4 w-4 text-blue-400" />
                   </div>
-                  <p className="text-xs sm:text-sm text-slate-400 mt-0.5">Tonton aksi seru mabar para gamer top Indonesia di YouTube Gaming & TikTok Live. Animasi berjalan otomatis ke samping (arahkan kursor untuk jeda).</p>
+                  <p className="text-xs sm:text-sm text-slate-400 mt-0.5">Informasi jam tayang ditampilkan sesuai jadwal yang tersedia. Jadwal dapat berubah, jadi pastikan cek kanal resmi streamer.</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="bg-red-500/10 text-red-400 border border-red-500/30 text-[11px] px-3 py-1 rounded-full font-bold flex items-center gap-1.5">
@@ -2147,9 +2268,8 @@ export default function WebVibesIDDigitalStore() {
                               </span>
                             </div>
                           </div>
-                          <span className="bg-red-500/20 text-red-400 border border-red-500/30 text-[10px] px-2.5 py-0.5 rounded-full font-bold animate-pulse flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-live-pulse"></span>
-                            LIVE
+                          <span className={`${stream.status === 'live' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-slate-800 text-slate-300 border-slate-700'} border text-[10px] px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1`}>
+                            {stream.status === 'live' ? 'LIVE SEKARANG' : 'JADWAL'}
                           </span>
                         </div>
 
@@ -2160,25 +2280,76 @@ export default function WebVibesIDDigitalStore() {
                       </div>
 
                       <div className="space-y-3 pt-3 border-t border-slate-800/80">
-                        <div className="flex justify-between items-center text-[11px] text-slate-400">
-                          <span>Status: <strong className="text-emerald-400">Sedang Siaran</strong></span>
-                          <span className="text-slate-300 font-medium">{stream.viewers}</span>
+                        <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                          <IconClock className="h-3.5 w-3.5 text-blue-400" />
+                          <span>Jam live (WIB): {stream.schedule || 'Belum diumumkan'}</span>
                         </div>
                         
                         <a 
-                          href={stream.url} target="_blank" rel="noreferrer"
+                          href={stream.url || (stream.badgePlatform === 'YouTube'
+                            ? `https://www.youtube.com/results?search_query=${encodeURIComponent(`${stream.streamer} live`)}`
+                            : `https://www.tiktok.com/search?q=${encodeURIComponent(stream.streamer)}`)}
+                          target="_blank" rel="noreferrer"
                           className={`w-full py-2.5 rounded-xl font-bold text-xs text-center transition flex items-center justify-center gap-1.5 shadow ${
                             stream.badgePlatform === 'YouTube' ? 'bg-red-600 hover:bg-red-500 text-white' : 'bg-slate-900 border border-pink-500/40 hover:bg-pink-600 text-white'
                           }`}
                         >
                           {stream.badgePlatform === 'YouTube' ? <IconYoutube className="w-3.5 h-3.5" /> : <IconTiktok className="w-3.5 h-3.5" />}
-                          Tonton Siaran Live
+                          {stream.url ? 'Buka Kanal Resmi' : 'Cari Kanal & Jadwal'}
                         </a>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
+            </section>
+
+            <section className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6">
+              <div className="flex flex-col gap-2 border-b border-slate-800 pb-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h2 className="text-xl font-extrabold text-white sm:text-2xl">Ulasan Pelanggan</h2>
+                  <p className="mt-1 text-xs text-slate-400 sm:text-sm">Ulasan bersifat sukarela dan dikirim setelah pesanan simulasi.</p>
+                </div>
+                {reviews.length > 0 && (
+                  <div className="text-sm font-semibold text-amber-300" aria-label={`Rata-rata ${(
+                    reviews.reduce((total, review) => total + review.rating, 0) / reviews.length
+                  ).toFixed(1)} dari 5 bintang`}>
+                    ★ {(reviews.reduce((total, review) => total + review.rating, 0) / reviews.length).toFixed(1)}
+                    <span className="ml-2 text-xs font-normal text-slate-400">{reviews.length} ulasan</span>
+                  </div>
+                )}
+              </div>
+              {reviewsLoadFailed ? (
+                <p className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm text-amber-200">
+                  Ulasan belum dapat dimuat. Pastikan layanan toko tersedia lalu muat ulang halaman.
+                </p>
+              ) : reviews.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-800 bg-[#091d3d]/40 px-5 py-8 text-center text-sm text-slate-400">
+                  Belum ada ulasan. Jadilah yang pertama memberi bintang setelah mencoba alur pesanan demo.
+                </div>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {reviews.slice(0, 6).map((review) => (
+                    <article key={review.id} className="rounded-2xl border border-slate-800 bg-[#091d3d] p-5">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="text-lg tracking-wide text-amber-400" aria-label={`${review.rating} dari 5 bintang`}>
+                          {'★'.repeat(review.rating)}<span className="text-slate-700">{'★'.repeat(5 - review.rating)}</span>
+                        </div>
+                        <time className="text-[11px] text-slate-500" dateTime={review.createdAt}>
+                          {new Date(review.createdAt).toLocaleDateString('id-ID')}
+                        </time>
+                      </div>
+                      <p className="mt-3 min-h-6 break-words text-sm leading-relaxed text-slate-200">
+                        {review.comment || 'Pelanggan memberi rating tanpa komentar.'}
+                      </p>
+                      <p className="mt-3 text-xs font-semibold text-slate-400">Pelanggan WebVibes</p>
+                    </article>
+                  ))}
+                </div>
+              )}
+              <p className="text-[11px] text-slate-500">
+                Ulasan tersimpan di file backend lokal, belum di database online.
+              </p>
             </section>
 
             {/* SECTION KABAR & BERITA TERKINI (CNN INDONESIA, KOMPAS, DETIK, ANTARA) */}
@@ -2236,7 +2407,7 @@ export default function WebVibesIDDigitalStore() {
             {/* SECTION JAMINAN LAYANAN & KEUNGGULAN TOKO */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6">
               <div className="border-b border-slate-800 pb-4">
-                <h2 className="text-xl sm:text-2xl font-extrabold text-white">Standar Layanan WebVibes ID</h2>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-white">Standar Layanan WEBVIBESID</h2>
                 <p className="text-xs sm:text-sm text-slate-400 mt-0.5">Komitmen kami untuk memberikan pengalaman transaksi digital terbaik di Indonesia.</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -2360,9 +2531,9 @@ export default function WebVibesIDDigitalStore() {
           
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <img src="/logo webvibesid.jpeg" alt="WebVibes ID" className="w-10 h-10 rounded-xl object-cover border border-blue-500/30" />
+              <img src="/logo webvibesid.jpeg" alt="WEBVIBESID" className="w-10 h-10 rounded-xl object-cover border border-blue-500/30" />
               <div>
-                <span className="text-base font-black text-white tracking-wider block leading-none">WEB<span className="text-[#1769E0]">VIBES</span>.ID</span>
+                <span className="text-base font-black text-white tracking-wider block leading-none">WEB<span className="text-[#1769E0]">VIBESID</span></span>
                 <span className="text-[10px] text-slate-400 font-medium">VIBES LIMIT NO ASYIK</span>
               </div>
             </div>
@@ -2373,10 +2544,10 @@ export default function WebVibesIDDigitalStore() {
 
           <div className="space-y-3">
             <h4 className="font-bold text-white uppercase tracking-wider text-xs">Katalog Layanan</h4>
-            <p onClick={() => { setCurrentView('games'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-white cursor-pointer transition">Top Up Game</p>
-            <p onClick={() => { setCurrentView('voucher'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-white cursor-pointer transition">Voucher Digital</p>
-            <p onClick={() => { setCurrentView('pulsa'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-white cursor-pointer transition">Pulsa & Paket Data</p>
-            <p onClick={() => { setCurrentView('ppob'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-white cursor-pointer transition">Token Listrik PLN</p>
+            <p onClick={() => navigateToCategory('games')} className="hover:text-white cursor-pointer transition">Top Up Game</p>
+            <p onClick={() => navigateToCategory('voucher')} className="hover:text-white cursor-pointer transition">Voucher Digital</p>
+            <p onClick={() => navigateToCategory('pulsa')} className="hover:text-white cursor-pointer transition">Pulsa & Paket Data</p>
+            <p onClick={() => navigateToCategory('ppob')} className="hover:text-white cursor-pointer transition">Token Listrik PLN</p>
             <p onClick={() => { setCurrentView('promo'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-white cursor-pointer transition">Promo & Voucher Diskon</p>
           </div>
 
@@ -2393,16 +2564,16 @@ export default function WebVibesIDDigitalStore() {
             <h4 className="font-bold text-white uppercase tracking-wider text-xs">Hubungi Kami</h4>
             <p className="text-slate-300">Email: support@webvibes.id</p>
             <p className="text-slate-300">WhatsApp: +62 812-3456-7890</p>
-            <p className="text-slate-300">Jam Operasional: 24 Jam Nonstop</p>
+            <p className="text-slate-300">Mode pratinjau toko</p>
             <div className="pt-2">
-              <span className="text-[11px] font-semibold text-emerald-400 block">Sistem Otomatisasi Server Aktif</span>
+              <span className="text-[11px] font-semibold text-amber-300 block">Pembayaran dan katalog belum terhubung ke penyedia</span>
             </div>
           </div>
 
         </div>
 
         <div className="max-w-7xl mx-auto border-t border-slate-800/80 mt-12 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-slate-500 text-xs">
-          <p>© 2026 WebVibes ID. Hak Cipta Dilindungi Undang-Undang.</p>
+          <p>© 2026 WEBVIBESID. Hak Cipta Dilindungi Undang-Undang.</p>
           <div className="flex items-center gap-4">
             <span>QRIS</span> • <span>DANA</span> • <span>GoPay</span> • <span>OVO</span> • <span>ShopeePay</span>
           </div>
@@ -2414,7 +2585,7 @@ export default function WebVibesIDDigitalStore() {
         <div className="mx-auto grid min-h-[54px] grid-cols-6 gap-1">
           <button
             type="button"
-            onClick={() => { setCurrentView('home'); setSelectedProduct(null); setCheckoutStep('form'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            onClick={() => navigateToCategory('home')}
             aria-current={currentView === 'home' ? 'page' : undefined}
             className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold transition ${currentView === 'home' ? 'bg-[#1769E0]/20 text-[#5da1ff]' : 'text-slate-400 hover:bg-[#1769E0]/10 hover:text-white'}`}
           >
@@ -2426,7 +2597,7 @@ export default function WebVibesIDDigitalStore() {
 
           <button
             type="button"
-            onClick={() => { setCurrentView('games'); setSelectedProduct(null); setCheckoutStep('form'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            onClick={() => navigateToCategory('games')}
             aria-current={currentView === 'games' || currentView === 'detail' ? 'page' : undefined}
             className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold transition ${currentView === 'games' || currentView === 'detail' ? 'bg-[#1769E0]/20 text-[#5da1ff]' : 'text-slate-400 hover:bg-[#1769E0]/10 hover:text-white'}`}
           >
@@ -2438,7 +2609,7 @@ export default function WebVibesIDDigitalStore() {
 
           <button
             type="button"
-            onClick={() => { setCurrentView('voucher'); setSelectedProduct(null); setCheckoutStep('form'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            onClick={() => navigateToCategory('voucher')}
             aria-current={currentView === 'voucher' ? 'page' : undefined}
             className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold transition ${currentView === 'voucher' ? 'bg-[#1769E0]/20 text-[#5da1ff]' : 'text-slate-400 hover:bg-[#1769E0]/10 hover:text-white'}`}
           >
@@ -2450,7 +2621,7 @@ export default function WebVibesIDDigitalStore() {
 
           <button
             type="button"
-            onClick={() => { setCurrentView('pulsa'); setSelectedProduct(null); setCheckoutStep('form'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            onClick={() => navigateToCategory('pulsa')}
             aria-current={currentView === 'pulsa' ? 'page' : undefined}
             className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold transition ${currentView === 'pulsa' ? 'bg-[#1769E0]/20 text-[#5da1ff]' : 'text-slate-400 hover:bg-[#1769E0]/10 hover:text-white'}`}
           >
@@ -2462,7 +2633,7 @@ export default function WebVibesIDDigitalStore() {
 
           <button
             type="button"
-            onClick={() => { setCurrentView('ppob'); setSelectedProduct(null); setCheckoutStep('form'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            onClick={() => navigateToCategory('ppob')}
             aria-current={currentView === 'ppob' ? 'page' : undefined}
             className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold transition ${currentView === 'ppob' ? 'bg-[#1769E0]/20 text-[#5da1ff]' : 'text-slate-400 hover:bg-[#1769E0]/10 hover:text-white'}`}
           >

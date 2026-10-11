@@ -12,14 +12,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Technology Indonesia",
-  description: "Platform top-up digital terpercaya",
+  title: "WEBVIBESID",
+  description: "WEBVIBESID - platform top-up digital",
+  icons: {
+    icon: "/logo%20webvibesid.jpeg",
+    apple: "/logo%20webvibesid.jpeg",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
-      lang="en"
+      lang="id"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
